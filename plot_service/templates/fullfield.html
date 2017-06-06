@@ -1,0 +1,28 @@
+<html>
+	<head>
+		<script src="https://ajax.aspnetcdn.com/ajax/jQuery/jquery-3.2.1.min.js"></script>
+		<title>Terraref Fullfield Service</title>
+		<link rel='stylesheet' href='../static/main.css?version=112'>
+	</head>
+	
+	<body>
+		<h1>Terraref Plot Service</h1>
+		<h3>Enter paramters to get the fullfield image:</h3>
+		<form action='http://141.142.170.38:8000/fullfield' method='POST'>
+			<div>
+				<h4 style='display:inline'>Site:</h4>
+				<Input type='text' name='site' rows='1' cols='30'></textarea>
+			</div>
+			<div>
+                                <h4 style='display:inline'>Sensor:</h4>
+                                <Input type='text' name='sensor' rows='1' cols='30'></textarea>
+                        </div>
+			<div>
+                                <h4 style='display:inline'>Date:</h4>
+                                <Input type='text' name='date' rows='1' cols='30'></textarea>
+                        </div>
+			<input type='Submit' value='Get Image'></input>
+		</form>
+	</body>
+
+</html>

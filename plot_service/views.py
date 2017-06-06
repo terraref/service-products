@@ -1,6 +1,6 @@
 import os
-from flask import safe_join
-from flask import send_from_directory
+from flask import render_template, safe_join, send_from_directory, request, Flask, redirect, url_for
+from wtforms import Form, TextField, TextAreaField, validators
 from plot_service import app
 from plot_service.exceptions import InvalidUsage
 
@@ -106,7 +106,34 @@ def list_sensors(site):
 def api_active():
     return 'API ACTIVE'
 
-@app.route('/')
-def index():
-    return 'WORKS'
+class ReusableForm(Form):
+    site = TextField('Site:', validators=[validators.required()])
+    sensor = TextField('Sensor:', validators=[validators.required()]) 
+    date = TextField('Date:', validators=[validators.required()])
 
+
+@app.route('/fullfield', methods=['GET', 'POST'])
+def fullfield():
+    form = ReusableForm(request.form)
+    if request.method == 'POST':
+        site=request.form['site']
+        sensor=request.form['sensor']
+        date=request.form['date']
+
+        #if form.validate():
+        return redirect(url_for('sensor', site=site, sensor=sensor, date=date))
+
+    return render_template('fullfield.html', form=form, info={"status":""})
+
+@app.route('/plot_service', methods=['GET', 'POST'])
+def plot():
+    if request.method == 'POST':
+        site=request.form['site']
+        sensor=request.form['sensor']
+        date=request.form['date']
+        range_=request.form['range']
+        column=request.form['column']
+
+        return redirect(url_for('extract_plot', site=site, sensor=sensor, date=date, range_=range_, column=column))
+
+    return render_template('plot_service.html')
