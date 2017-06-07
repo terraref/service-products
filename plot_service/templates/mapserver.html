@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Mapserver</title>
+    <link rel="stylesheet" href="https://openlayers.org/en/v4.1.1/css/ol.css" type="text/css">
+    <!-- The line below is only needed for old environments like Internet Explorer and Android 4.x -->
+    <script src="https://cdn.polyfill.io/v2/polyfill.min.js?features=requestAnimationFrame,Element.prototype.classList,URL"></script>
+    <script src="https://openlayers.org/en/v4.1.1/build/ol.js"></script>
+  </head>
+  <body>
+    <div id="map" class="map"></div>
+    <script>
+      var layers = [
+        new ol.layer.Tile({
+          source: new ol.source.OSM()
+        }),
+        new ol.layer.Image({
+          extent: [-111.9750277, 33.0745861, -111.9748097, 33.0764277],
+          source: new ol.source.ImageWMS({
+            url: 'https://terraref.ncsa.illinois.edu/mapserver', 
+            params: {
+                map: '{{ mapfile }}',
+                LAYERS: 'StereoTop',
+            },
+            serverType: 'mapserver',
+            projection: 'EPSG:4326',
+          })
+        })
+      ];
+      var map = new ol.Map({
+        layers: layers,
+        target: 'map',
+        view: new ol.View({
+          projection: 'EPSG:4326',
+          center: [-111.9749187,  33.0755069],
+          zoom: 20
+        })
+      });
+    </script>
+  </body>
+</html>
+

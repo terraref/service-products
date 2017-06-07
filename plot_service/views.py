@@ -1,5 +1,8 @@
 import os
-from flask import render_template, safe_join, send_from_directory, request, Flask, redirect, url_for
+from PIL import Image
+from io import BytesIO
+from flask import render_template, safe_join, request, Flask, redirect, url_for
+from flask import send_file, send_from_directory
 from wtforms import Form, TextField, TextAreaField, validators
 from plot_service import app
 from plot_service.exceptions import InvalidUsage
@@ -72,9 +75,8 @@ def sensor(site, sensor, date):
 
     # encodes site, sensor, date into attachment filename
     attachment_filename = get_attachment_name(site, sensor, date, product)
-
-    return send_from_directory(datepath, product, as_attachment=True,
-                               attachment_filename=attachment_filename)
+ 
+    return send_file(safe_join(datepath, 'ff.jpeg'),mimetype='image/jpeg')
 
 
 @app.route('/api/v1/sites/<site>/sensors/<sensor>/<date>/plots/<range_>/<column>')
@@ -93,6 +95,10 @@ def extract_plot(site, sensor, date, range_, column):
     plot = clip_plot(path, boundary)
     attachment_filename = plot_attachment_name(site, sensor, date, 
                                                product, range_, column)
+    byte_io = BytesIO()
+    image = Image.open(datepath+'/'+product)
+    image.save(byte_io, 'PNG')
+    byte_io.seek(0)
     return send_file(plot, as_attachment=True, 
                      attachment_filename=attachment_filename)
 
@@ -114,19 +120,30 @@ class ReusableForm(Form):
 
 @app.route('/fullfield', methods=['GET', 'POST'])
 def fullfield():
+
     form = ReusableForm(request.form)
     if request.method == 'POST':
         site=request.form['site']
         sensor=request.form['sensor']
         date=request.form['date']
 
-        #if form.validate():
-        return redirect(url_for('sensor', site=site, sensor=sensor, date=date))
+        if form.validate():
+            return redirect(url_for('mapserver'))
 
     return render_template('fullfield.html', form=form, info={"status":""})
 
+@app.route('/mapserver', methods=['POST'])
+def mapserver():
+    # get variables
+    mapfile = ('/media/roger/sites/{}/Level_1/{}/{}'+
+		'/stereoTop_fullfield_jpeg75.map').format(request.form['site'],
+                             request.form['sensor'], request.form['date'] )
+    
+    return render_template('mapserver.html', mapfile=mapfile)
+
 @app.route('/plot_service', methods=['GET', 'POST'])
 def plot():
+
     if request.method == 'POST':
         site=request.form['site']
         sensor=request.form['sensor']
@@ -134,6 +151,9 @@ def plot():
         range_=request.form['range']
         column=request.form['column']
 
-        return redirect(url_for('extract_plot', site=site, sensor=sensor, date=date, range_=range_, column=column))
-
-    return render_template('plot_service.html')
+        if form.validate():
+            url = url_for('extract_plot', site=site, sensor=sensor, date=date, range_=range_,
+                    column=column)   
+            return redirect(url)
+        
+    return render_template('plot_service.html', form=form, info={"status":""})
