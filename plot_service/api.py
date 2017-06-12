@@ -1,12 +1,12 @@
 import os
-from PIL import Image
-from io import BytesIO
+#from PIL import Image
+#from io import BytesIO
 from flask import send_file, send_from_directory
 from plot_service import app
 from plot_service.exceptions import InvalidUsage
 
 def check_site(site):
-
+    ''' check for valid site given the site name '''
     terraref = os.environ.get('TERRAREF_BASE', TERRAREF_BASE)
     if not os.path.exists(terraref):
        raise InvalidUsage('Could not find TerraREF data, try setting '
@@ -90,16 +90,17 @@ def extract_plot(site, sensor, date, range_, column):
     plot = clip_plot(path, boundary)
     attachment_filename = plot_attachment_name(site, sensor, date, 
                                                product, range_, column)
-    byte_io = BytesIO()
-    image = Image.open(datepath+'/'+product)
-    image.save(byte_io, 'PNG')
-    byte_io.seek(0)
+    #byte_io = BytesIO()
+    #image = Image.open(datepath+'/'+product)
+    #image.save(byte_io, 'PNG')
+    #byte_io.seek(0)
     return send_file(plot, as_attachment=True, 
                      attachment_filename=attachment_filename)
 
 
 @app.route('/api/v1/sites/<site>/sensors')
 def list_sensors(site):
+    ''' List all the sensors in the given site '''
     check_site(site)
     return '{}: stereoTop'.format(site)
 

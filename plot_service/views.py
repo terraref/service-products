@@ -15,7 +15,7 @@ class ReusableForm(Form):
 
 @app.route('/fullfield', methods=['GET', 'POST'])
 def fullfield():
-
+    ''' The web interface for getting a fullfield image '''
     form = ReusableForm(request.form)
     if request.method == 'POST':
         site=request.form['site']
@@ -30,6 +30,7 @@ def fullfield():
 
 @app.route('/mapserver', methods=['POST'])
 def mapserver():
+    ''' The web interface for showing the fullfield image on a map '''
     # get variables
     mapfile = ('/media/roger/sites/{}/Level_1/{}/{}'+
 		'/stereoTop_fullfield_jpeg75.map').format(request.form['site'],
@@ -40,7 +41,8 @@ def mapserver():
 
 @app.route('/plot_service', methods=['GET', 'POST'])
 def plot():
-
+    ''' The web interface for getting a plot image '''    
+    form = ReusableForm(request.form) 
     if request.method == 'POST':
         site=request.form['site']
         sensor=request.form['sensor']
