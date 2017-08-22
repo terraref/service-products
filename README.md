@@ -9,28 +9,37 @@ information and returns a list of appropriate files for download.
 
     # get all sites
     http://hostname/api/v1/sites
-    { sites: [ { id: <str>, title: <str>, uri: <url> }, ...  ] }
+    {   
+      resources: [ { _type: str, id: str, title: str, 
+                     href: /sites/:id  },
+                     ...
+                 ]
+    }
 
     # get all sensor associated with a site
     http://hostname/api/v1/sites/:id
-    { site: id, 
-      collections: [ { id: 'sensors', title: 'Sensors', uri: <url> } ]
+    { 
+      _type: 'site',
+      title: 'site title',
+      site: id, 
+      collections: [ { id: 'sensors', title: 'Sensors', 
+                       href: /sites/:site_id/sensors } ]
     }
 
     http://hostname/api/v1/sites/:id/sensors
-    { site: id, 
-      sensors: [ { id: <str>, title: <str>, uri: <url> }, ... ],
+    { site: site_id, 
+      resources: [ { id: str, title: str, href: url }, ... ],
     }
 
     # get all data associated with sensor
     http://hostname/api/v1/sites/:site/sensors/:sensor
     { site: id, sensor: id, 
-      collections: [ { id: 'dates', title: 'Dates', uri: <url> }, ... ],
+      collections: [ { id: 'dates', title: 'Dates', href: url }, ... ],
     }
 
     http://hostname/api/v1/sites/:site/sensors/:sensor/dates
     { site: id, sensor: id, 
-      dates: [ { id: <str>, title: YYYY-MM-DD, uri: <url> }, ... ] }
+      resources: [ { id: str, title: YYYY-MM-DD, href: url }, ... ] }
     }
 
     # from the sensor level various filters can be applied 
@@ -39,12 +48,12 @@ information and returns a list of appropriate files for download.
     ?start=YYYY-MM-DD&end=YYYY-MM-DD
     ?season=#
 
-    # download the data
+    # download the data file
     http://hostname/api/v1/sites/:site/sensors/:sensor/dates/:date
     <return file>
 
     # return a data file clipped to plot boundary
-    ?date=YYYY-MM-DD&sitename=<plot name>
+    ?sitename=<plot name>
     <return clipped file>
 
 
