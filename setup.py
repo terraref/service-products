@@ -10,9 +10,12 @@ setup(
         'wtforms',
         'requests',
         'Pillow',
-        'terrautils'
+        'terrautils',
+		'pyclowder',
+		'json'
     ],
     dependency_links=[
-        'git+https://github.com/terraref/terrautils@standard_sensor_path#egg=terrautils-1.0.0'
+        'git+https://github.com/terraref/terrautils@standard_sensor_path#egg=terrautils-1.0.0',
+		'https://opensource.ncsa.illinois.edu/bitbucket/projects/CATS/repos/pyclowder2'
     ],
 )
