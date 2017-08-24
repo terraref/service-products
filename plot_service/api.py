@@ -13,8 +13,30 @@ from terrautils.sensors import get_sitename, get_sensor_product
 from terrautils.sensors import get_attachment_name, check_sensor
 from terrautils.sensors import plot_attachment_name, check_site
 from terrautils.sensors import get_file_paths
+import terrautils.sensors as Sensors
+import json
 
+TERRAREF_BASE = '/projects/arpae/terraref'
 
+@app.route('/api/')
+def api_active():
+    return 'API ACTIVE'
+
+@app.route('/api/v1/sites')
+def list_sites():
+	""" Get all sites """
+	sites = Sensors.get_sites()
+	site_map_list = []
+	for site in sites:
+		site_map = {'_type' : 'str',
+					'id' : site,
+					'title' : site,
+					'href' : '/sites/' + site }
+		site_map_list.append(site_map)
+
+	return json.dumps({'resources' : site_map_list})
+
+'''
 @app.route('/api/v1/sites/<site>/sensors/<sensor>/<date>')
 def sensor(site, sensor, date):
     """Return a downloaded version of the sensor """
@@ -54,6 +76,12 @@ def sensor(site, sensor, date):
     return send_file(paths[0], mimetype='image/jpeg')
 
 
+@app.route('/api/v1/sites/<site>/sensors')
+def list_sensors(site):
+    """ List all the sensors in the given site """
+    check_site(site)
+    return '{}: stereoTop'.format(site)
+
 @app.route('/api/v1/sites/<site>/sensors/<sensor>/<date>' +
            '/plots/<range_>/<column>')
 def extract_plot(site, sensor, date, range_, column):
@@ -82,15 +110,4 @@ def extract_plot(site, sensor, date, range_, column):
     attachment_filename = plot_attachment_name(sitename, sensor, date, product)
     return send_file(byte_io, as_attachment=True,
                      attachment_filename=attachment_filename)
-
-
-@app.route('/api/v1/sites/<site>/sensors')
-def list_sensors(site):
-    ''' List all the sensors in the given site '''
-    check_site(site)
-    return '{}: stereoTop'.format(site)
-
-
-@app.route('/api/')
-def api_active():
-    return 'API ACTIVE'
+'''
