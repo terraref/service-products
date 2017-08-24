@@ -24,17 +24,37 @@ def api_active():
 
 @app.route('/api/v1/sites')
 def list_sites():
-	""" Get all sites """
-	sites = Sensors.get_sites()
-	site_map_list = []
-	for site in sites:
-		site_map = {'_type' : 'str',
-					'id' : site,
-					'title' : site,
-					'href' : '/sites/' + site }
-		site_map_list.append(site_map)
+    """ Get all sites """
+    sites = Sensors.get_sites()
+    site_map_list = []
+    for site in sites:
+        site_map = {'_type' : 'str',
+                    'id' : site,
+                    'title' : site,
+                    'href' : '/sites/' + site
+                    }
+        site_map_list.append(site_map)
 
-	return json.dumps({'resources' : site_map_list})
+    return json.dumps({'resources' : site_map_list})
+
+@app.route('/api/v1/sites/<site>')
+def get_site(site):
+    """ Get the site's metadata """
+    site_map = {'_type' : 'site',
+                'title' : site,
+                'site' : site,
+                'collections' : [{'id' : 'sensors',
+                                  'title' : 'Sensors',
+                                  'href' : '/sites/' + site + '/sensors'}]
+               }
+
+    return json.dumps(site_map)
+
+@app.route('/api/v1/sites/<site>/sensors')
+def list_sensors(site):
+    """ Get all sensor associated with a site """
+    sensors = get_sensors(site)
+    return "" 
 
 '''
 @app.route('/api/v1/sites/<site>/sensors/<sensor>/<date>')
@@ -76,11 +96,6 @@ def sensor(site, sensor, date):
     return send_file(paths[0], mimetype='image/jpeg')
 
 
-@app.route('/api/v1/sites/<site>/sensors')
-def list_sensors(site):
-    """ List all the sensors in the given site """
-    check_site(site)
-    return '{}: stereoTop'.format(site)
 
 @app.route('/api/v1/sites/<site>/sensors/<sensor>/<date>' +
            '/plots/<range_>/<column>')
