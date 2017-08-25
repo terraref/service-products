@@ -18,9 +18,10 @@ import json
 
 TERRAREF_BASE = '/projects/arpae/terraref'
 
-@app.route('/api/')
+@app.route('/api')
 def api_active():
     return 'API ACTIVE'
+
 
 @app.route('/api/v1/sites')
 def list_sites():
@@ -31,11 +32,11 @@ def list_sites():
         site_map = {'_type' : 'str',
                     'id' : site,
                     'title' : site,
-                    'href' : '/sites/' + site
-                    }
+                    'href' : '/sites/' + site}
         site_map_list.append(site_map)
 
     return json.dumps({'resources' : site_map_list})
+
 
 @app.route('/api/v1/sites/<site>')
 def get_site(site):
@@ -45,16 +46,63 @@ def get_site(site):
                 'site' : site,
                 'collections' : [{'id' : 'sensors',
                                   'title' : 'Sensors',
-                                  'href' : '/sites/' + site + '/sensors'}]
-               }
+                                  'href' : '/sites/' + site + '/sensors'}]}
 
     return json.dumps(site_map)
+
 
 @app.route('/api/v1/sites/<site>/sensors')
 def list_sensors(site):
     """ Get all sensor associated with a site """
-    sensors = get_sensors(site)
-    return "" 
+    sensors = Sensors.get_sensors(site)
+    sensor_list = []
+    for sensor in sensors:
+        sensor_map = {'id' : sensor,
+                      'title' : sensor,
+                      'href' : '/sites/' + site + '/sensors/' + sensor}
+        sensor_list.append(sensor_map)
+
+    return json.dumps({'site' : site, 
+                       'resources' : sensor_list})
+
+
+@app.route('/api/v1/sites/<site>/sensors/<sensor>')
+def get_sensor_data(site, sensor):
+    """ Get all data associated with sensor """
+    sensor_collections = [{'id' : 'dates',
+                           'title' : 'Dates',
+                           'href' : '/sites/' + site + '/sensors/' + sensor}]
+
+    return json.dumps({'site' : site,
+                       'sensor' : sensor,
+                       'collections' : sensor_collections})
+
+
+@app.route('/api/v1/sites/<site>/sensors/<sensor>/dates')
+def get_sensor_dates(site, sensor):
+    # TODO: get all dates and handle query 
+    """ Get dates associated with sensor """
+    if request.query_string:
+        # handle query
+        # ?start=start_date
+        start = request.args.get('start')
+        end = request.args.get('end')
+        season = request.args.get('season')
+
+    else:
+        # get all dates
+        #sensor_dates = Sensors.get_sensor_path('ua-mac', 'Level_1', 'flirIrCamera', '2017-04-27', '2017-04-27__23-12-13-999', '')
+    return qs
+
+
+@app.route('/api/v1/sites/<site>/sensors/<sensor>/dates/<date>')
+def download_data(site, sensor, date):
+    # TODO: download the data file
+    if request.query_string:    # return clipped file
+        plot_name = request.args.get('sitename')
+    else:   # download the date file
+        
+    return ""
 
 '''
 @app.route('/api/v1/sites/<site>/sensors/<sensor>/<date>')
