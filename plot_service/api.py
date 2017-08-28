@@ -15,8 +15,28 @@ from terrautils.sensors import plot_attachment_name, check_site
 from terrautils.sensors import get_file_paths
 import terrautils.sensors as Sensors
 import json
+import logging
+from datetime import datetime
+
+####################################################################
+def list_sensor_dates(station, sensor):
+    """ Return a list of all dates of the sensor """
+    sensor_path = check_sensor(station, sensor)
+    return os.listdir(sensor_path)
+
+
+#TODO: functions ABOVE need to move to terrautils/sensors.py in the future
 
 TERRAREF_BASE = '/projects/arpae/terraref'
+season_dates = {'1' : [datetime.strptime('2000-03-21', '%Y-%m-%d').date(), # spring
+                       datetime.strptime('2000-06-20', '%Y-%m-%d').date()],
+                '2' : [datetime.strptime('2000-06-21', '%Y-%m-%d').date(), # summer
+                       datetime.strptime('2000-09-22', '%Y-%m-%d').date()],
+                '3' : [datetime.strptime('2000-09-23', '%Y-%m-%d').date(), # fall
+                       datetime.strptime('2000-12-31', '%Y-%m-%d').date()],
+                '4' : [datetime.strptime('2000-01-01', '%Y-%m-%d').date(), # winter
+                       datetime.strptime('2000-03-20', '%Y-%m-%d').date()]
+               }
 
 @app.route('/api')
 def api_active():
@@ -82,26 +102,57 @@ def get_sensor_data(site, sensor):
 def get_sensor_dates(site, sensor):
     # TODO: get all dates and handle query 
     """ Get dates associated with sensor """
-    if request.query_string:
-        # handle query
-        # ?start=start_date
-        start = request.args.get('start')
-        end = request.args.get('end')
-        season = request.args.get('season')
+    resources = []
+    dates = list_sensor_dates(site, sensor)
+    
+    if dates:
+        dates = [datetime.strptime(date, '%Y-%m-%d').date() for date in dates]
+        dates.sort()
 
-    else:
-        # get all dates
-        #sensor_dates = Sensors.get_sensor_path('ua-mac', 'Level_1', 'flirIrCamera', '2017-04-27', '2017-04-27__23-12-13-999', '')
-    return qs
+        if request.args:
+             # handle query
+             # TODO: check date format
+             start = request.args.get('start')
+             end = request.args.get('end')
+             season = request.args.get('season')
+             if season:
+                 # TODO: season
+                 pass
+             
+             ordered_dates = []
+             start_date = dates[0]        # default query start date
+             end_date = dates[-1]         # default query end date
+             
+             if request.args.get('start'):
+                 start_date = datetime.strptime(request.args.get('start'), '%Y-%m-%d').date()
+             if request.args.get('end'):
+                 end_date = datetime.strptime(request.args.get('end'), '%Y-%m-%d').date()
+             
+             for date in dates:
+                 if date >= start_date and date <= end_date:
+                     ordered_dates.append(date.strftime('%Y-%m-%d'))
+             
+             dates = ordered_dates
+                
+    for date in dates:
+        date_map = {'id' : date,
+                    'title' : date,
+                    'href' : '/sites/' + site + '/sensors/' + sensor + '/dates/' + date}
+     
+        resources.append(date_map)
+            
+    return json.dumps({'site' : site,
+                       'sensor' : sensor,
+                       'resources' : resources})
 
-
+ 
 @app.route('/api/v1/sites/<site>/sensors/<sensor>/dates/<date>')
 def download_data(site, sensor, date):
     # TODO: download the data file
-    if request.query_string:    # return clipped file
+    if request.args:    # return clipped file
         plot_name = request.args.get('sitename')
     else:   # download the date file
-        
+        a = '' 
     return ""
 
 '''
