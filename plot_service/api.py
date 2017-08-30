@@ -123,10 +123,10 @@ def get_sensor_dates(site, sensor):
              start_date = dates[0]        # default query start date
              end_date = dates[-1]         # default query end date
              
-             if request.args.get('start'):
-                 start_date = datetime.strptime(request.args.get('start'), '%Y-%m-%d').date()
-             if request.args.get('end'):
-                 end_date = datetime.strptime(request.args.get('end'), '%Y-%m-%d').date()
+             if start:
+                 start_date = datetime.strptime(start, '%Y-%m-%d').date()
+             if end
+                 end_date = datetime.strptime(end, '%Y-%m-%d').date()
              
              for date in dates:
                  if date >= start_date and date <= end_date:
