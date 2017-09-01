@@ -7,12 +7,12 @@ from PIL import Image
 from flask import send_file, send_from_directory, safe_join, request
 from plot_service import app
 from plot_service.exceptions import InvalidUsage
-from terrautils.gdal import clip_raster, extract_boundary
-from terrautils.betydb import get_site_boundaries
-from terrautils.sensors import get_sitename, get_sensor_product
-from terrautils.sensors import get_attachment_name, check_sensor
-from terrautils.sensors import plot_attachment_name, check_site
-from terrautils.sensors import get_file_paths
+#from terrautils.gdal import clip_raster, extract_boundary
+#from terrautils.betydb import get_site_boundaries
+#from terrautils.sensors import get_sitename, get_sensor_product
+#from terrautils.sensors import get_attachment_name, check_sensor
+#from terrautils.sensors import plot_attachment_name, check_site
+#from terrautils.sensors import get_file_paths
 import terrautils.sensors as Sensors
 import json
 import logging
