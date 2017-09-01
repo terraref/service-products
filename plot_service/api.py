@@ -125,7 +125,7 @@ def get_sensor_dates(site, sensor):
              
              if start:
                  start_date = datetime.strptime(start, '%Y-%m-%d').date()
-             if end
+             if end:
                  end_date = datetime.strptime(end, '%Y-%m-%d').date()
              
              for date in dates:
