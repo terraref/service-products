@@ -22,11 +22,49 @@ TERRAREF_BASE = '/projects/arpae/terraref'
 Sensors = Sensors_module(TERRAREF_BASE, 'ua-mac') # a Sensors instance with a dummy site
 
 ####################################################################
+def check_site(station):
+    """ Checks for valid station given the station name, and return its
+    path in the file system.
+    """
+
+    if not os.path.exists(TERRAREF_BASE):
+        raise InvalidUsage('Could not find data, try setting TERRAREF_BASE environmental variable')
+
+    sitepath = os.path.join(TERRAREF_BASE, station)
+    if not os.path.exists(sitepath):
+        raise InvalidUsage('unknown site', payload={'site': station})
+
+    return sitepath
+
+
+def check_sensor(station, sensor, date=None):
+    """ Checks for valid sensor with optional date, and return its path
+    in the file system.
+    """
+
+    sitepath = check_site(station)
+
+    sensorpath = os.path.join(sitepath, 'Level_1', sensor)
+    if not os.path.exists(sensorpath):
+        raise InvalidUsage('unknown sensor',
+                           payload={'site': station, 'sensor': sensor})
+
+    if not date:
+        return sensorpath
+
+    datepath = os.path.join(sensorpath, date)
+    print("datepath = {}".format(datepath))
+    if not os.path.exists(datepath):
+        raise InvalidUsage('sensor data not available for given date',
+                           payload={'site': station, 'sensor': sensor,
+                                    'date': date})
+
+    return datepath
 
 
 def list_sensor_dates(station, sensor):
     """ Return a list of all dates of the sensor """
-    sensor_path = Sensors.check_sensor(station, sensor)
+    sensor_path = check_sensor(station, sensor)
     return os.listdir(sensor_path)
 
 def get_experiment_dates(experiment_name):
