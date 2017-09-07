@@ -18,7 +18,7 @@ import json
 import logging
 from datetime import datetime
 
-TERRAREF_BASE = '/projects/arpae/terraref'
+TERRAREF_BASE = '/projects/arpae/terraref/sites'
 Sensors = Sensors_module(TERRAREF_BASE, 'ua-mac') # a Sensors instance with a dummy site
 
 ####################################################################
@@ -169,10 +169,12 @@ def get_sensor_dates(site, sensor):
              
              for date in dates:
                  if date >= start_date and date <= end_date:
-                     ordered_dates.append(date.strftime('%Y-%m-%d'))
+                     ordered_dates.append(date)
              
              dates = ordered_dates
-                
+
+        dates = [date.strftime('%Y-%m-%d') for date in dates]
+
     for date in dates:
         date_map = {'id' : date,
                     'title' : date,
