@@ -161,11 +161,12 @@ def get_sensor_dates(site, sensor):
              if end:
                  end_date = datetime.strptime(end, '%Y-%m-%d').date()
              if experiment:
-                 experiment_dates = get_experiment_dates(experiment)
-                 if experiment_dates == None:
-                    dates = []
-                 start_date = datetime.strptime(experiment_dates[0], '%Y-%m-%d').date()
-                 end_date = datetime.strptime(experiment_dates[1], '%Y-%m-%d').date()
+                experiment_dates = get_experiment_dates(experiment)
+                if experiment_dates == None:
+                   dates = []
+                else:
+                   start_date = datetime.strptime(experiment_dates[0], '%Y-%m-%d').date()
+                   end_date = datetime.strptime(experiment_dates[1], '%Y-%m-%d').date()
              
              for date in dates:
                  if date >= start_date and date <= end_date:
