@@ -6,7 +6,7 @@ from flask import send_file, send_from_directory
 from wtforms import Form, TextField, TextAreaField, validators
 from plot_service import app
 from terrautils.gdal import get_raster_extents
-from terrautils.sensors import check_site, check_sensor, get_file_paths
+#from terrautils.sensors import check_site, check_sensor, get_file_paths
 
 
 TERRAREF_BASE = '/projects/arpae/terraref/sites/ua-mac/Level_1/fullfield/'

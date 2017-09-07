@@ -8,35 +8,35 @@ from flask import send_file, send_from_directory, safe_join, request
 from plot_service import app
 from plot_service.exceptions import InvalidUsage
 #from terrautils.gdal import clip_raster, extract_boundary
-#from terrautils.betydb import get_site_boundaries
+from terrautils.betydb import get_experiments
 #from terrautils.sensors import get_sitename, get_sensor_product
 #from terrautils.sensors import get_attachment_name, check_sensor
 #from terrautils.sensors import plot_attachment_name, check_site
 #from terrautils.sensors import get_file_paths
-import terrautils.sensors as Sensors
+from terrautils.sensors import Sensors as Sensors_module
 import json
 import logging
 from datetime import datetime
 
+TERRAREF_BASE = '/projects/arpae/terraref'
+Sensors = Sensors_module(TERRAREF_BASE, 'ua-mac') # a Sensors instance with a dummy site
+
 ####################################################################
+
+
 def list_sensor_dates(station, sensor):
     """ Return a list of all dates of the sensor """
-    sensor_path = check_sensor(station, sensor)
+    sensor_path = Sensors.check_sensor(station, sensor)
     return os.listdir(sensor_path)
 
-
-#TODO: functions ABOVE need to move to terrautils/sensors.py in the future
-
-TERRAREF_BASE = '/projects/arpae/terraref'
-season_dates = {'1' : [datetime.strptime('2000-03-21', '%Y-%m-%d').date(), # spring
-                       datetime.strptime('2000-06-20', '%Y-%m-%d').date()],
-                '2' : [datetime.strptime('2000-06-21', '%Y-%m-%d').date(), # summer
-                       datetime.strptime('2000-09-22', '%Y-%m-%d').date()],
-                '3' : [datetime.strptime('2000-09-23', '%Y-%m-%d').date(), # fall
-                       datetime.strptime('2000-12-31', '%Y-%m-%d').date()],
-                '4' : [datetime.strptime('2000-01-01', '%Y-%m-%d').date(), # winter
-                       datetime.strptime('2000-03-20', '%Y-%m-%d').date()]
-               }
+def get_experiment_dates(experiment_name):
+    """ Get the given experiment's starting date and end date """
+    experiments = get_experiments()
+    for e in experiments:
+        if experiment_name == e['name']:
+            return [e['start_date'], e['end_date']]
+    return None 
+#TODO: functions ABOVE need to move to terrautils in the future
 
 @app.route('/api')
 def api_active():
@@ -100,7 +100,6 @@ def get_sensor_data(site, sensor):
 
 @app.route('/api/v1/sites/<site>/sensors/<sensor>/dates')
 def get_sensor_dates(site, sensor):
-    # TODO: get all dates and handle query 
     """ Get dates associated with sensor """
     resources = []
     dates = list_sensor_dates(site, sensor)
@@ -111,14 +110,10 @@ def get_sensor_dates(site, sensor):
 
         if request.args:
              # handle query
-             # TODO: check date format
              start = request.args.get('start')
              end = request.args.get('end')
-             season = request.args.get('season')
-             if season:
-                 # TODO: season
-                 pass
-             
+             experiment = request.args.get('experiment')
+
              ordered_dates = []
              start_date = dates[0]        # default query start date
              end_date = dates[-1]         # default query end date
@@ -127,6 +122,12 @@ def get_sensor_dates(site, sensor):
                  start_date = datetime.strptime(start, '%Y-%m-%d').date()
              if end:
                  end_date = datetime.strptime(end, '%Y-%m-%d').date()
+             if experiment:
+                 experiment_dates = get_experiment_dates(experiment)
+                 if experiment_dates == None:
+                    dates = []
+                 start_date = datetime.strptime(experiment_dates[0], '%Y-%m-%d').date()
+                 end_date = datetime.strptime(experiment_dates[1], '%Y-%m-%d').date()
              
              for date in dates:
                  if date >= start_date and date <= end_date:
@@ -152,7 +153,7 @@ def download_data(site, sensor, date):
     if request.args:    # return clipped file
         plot_name = request.args.get('sitename')
     else:   # download the date file
-        a = '' 
+        pass
     return ""
 
 '''
