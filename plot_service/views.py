@@ -132,3 +132,14 @@ def download():
         return render_template('download_links.html', links=links)
 
     return render_template('download_links.html')
+
+@app.route('/api', methods=['GET','POST'])
+def api():
+    form = ReusableForm(request.form)
+    if request.method == 'POST':
+        station = request.form['station']
+        sensor = request.form['sensor']
+        sitename = request.form['sitename']
+        starting_date = request.form['starting_date']
+        ending_date = request.form['ending_date']
+    return render_template('api.html')
