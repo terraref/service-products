@@ -53,7 +53,8 @@ def check_sensor(station, sensor, date=None):
         return sensorpath
 
     datepath = os.path.join(sensorpath, date)
-    print("datepath = {}".format(datepath))
+    logging.info("datepath = {}".format(datepath))
+
     if not os.path.exists(datepath):
         raise InvalidUsage('sensor data not available for given date',
                            payload={'site': station, 'sensor': sensor,
@@ -141,7 +142,7 @@ def get_sensor_dates(site, sensor):
     """ Get dates associated with sensor """
     resources = []
     dates = list_sensor_dates(site, sensor)
-    
+    print site, sensor
     if dates:
         dates = [datetime.strptime(date, '%Y-%m-%d').date() for date in dates]
         dates.sort()

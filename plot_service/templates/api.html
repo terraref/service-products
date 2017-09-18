@@ -19,13 +19,14 @@
     {{ form.csrf }}
     <div class="form-group">
       <label for="site">Site:</label>
-      <input type="text" class="form-control" id="site" name="site">
+      <input type="text" class="form-control" placeholder="e.g. ua-mac, ksu, danforth" id="site" name="site">
       <br>
       <label for="sensor">Sensor:</label>
-      <input type="text" class="form-control" id="sensor" name="sensor">
+      <input type="text" class="form-control" placeholder="e.g. flirIrCamera, fullfiled" id="sensor" name="sensor">
       <br>
       <label for="date">Date:</label>
-      <input type="text" class="form-control" id="date" name="date">
+      <input type="text" class="form-control" id="date" placeholder="YYYY-MM-DD, e.g. 2016-06-09, 2017-05-01" name="date">
+
     </div>
     <button type="submit" class="btn btn-success">Search</button>
   </form>

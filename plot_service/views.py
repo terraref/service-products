@@ -1,10 +1,10 @@
 import os
 import itertools
 from osgeo import gdal
-from flask import render_template, safe_join, request, Flask, redirect, url_for
+from flask import render_template, safe_join, flash, request, Flask, redirect, url_for
 from flask import send_file, send_from_directory
-from wtforms import Form, TextField, TextAreaField, validators
-from plot_service import app
+from wtforms import Form, TextField, TextAreaField, validators, StringField, SubmitField
+from plot_service import app, api
 from terrautils.gdal import get_raster_extents
 #from terrautils.sensors import check_site, check_sensor, get_file_paths
 
@@ -139,5 +139,5 @@ def api():
         site = request.form['site']
         sensor = request.form['sensor']
         date = request.form['date']
-        print site, sensor, date
+        return redirect(url_for('get_sensor_dates', site=site, sensor=sensor))
     return render_template('api.html', form=form)
