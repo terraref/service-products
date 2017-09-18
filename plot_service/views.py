@@ -14,7 +14,6 @@ PLOT_SERVICE_HOST = 'http://141.142.170.38:8000/'
 
 
 class ReusableForm(Form):
-
     site = TextField('Site:', validators=[validators.required()])
     sensor = TextField('Sensor:', validators=[validators.required()])
     date = TextField('Date:', validators=[validators.required()])
@@ -137,9 +136,8 @@ def download():
 def api():
     form = ReusableForm(request.form)
     if request.method == 'POST':
-        station = request.form['station']
+        site = request.form['site']
         sensor = request.form['sensor']
-        sitename = request.form['sitename']
-        starting_date = request.form['starting_date']
-        ending_date = request.form['ending_date']
-    return render_template('api.html')
+        date = request.form['date']
+        print site, sensor, date
+    return render_template('api.html', form=form)
