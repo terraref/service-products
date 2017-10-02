@@ -4,7 +4,7 @@ import json
 import numpy as np
 from io import BytesIO
 from PIL import Image
-from flask import send_file, send_from_directory, safe_join, request
+from flask import send_file, send_from_directory, safe_join, request, render_template
 from plot_service import app
 from plot_service.exceptions import InvalidUsage
 from terrautils.gdal import clip_raster
@@ -93,8 +93,9 @@ def list_sites():
                     'title' : site,
                     'href' : '/sites/' + site}
         site_map_list.append(site_map)
-
-    return json.dumps({'resources' : site_map_list})
+    data = {'resources' : site_map_list}
+    topic = "List of sites"
+    return render_template('data.html', topic=topic, data=data)
 
 
 @app.route('/api/v1/sites/<site>')
@@ -121,8 +122,11 @@ def list_sensors(site):
                       'href' : '/sites/' + site + '/sensors/' + sensor}
         sensor_list.append(sensor_map)
 
-    return json.dumps({'site' : site, 
-                       'resources' : sensor_list})
+    data = {'site' : site, 
+            'resources' : sensor_list}
+
+    topic = "List of sensors in site \"" + site + "\""
+    return render_template('data.html', topic=topic, data=data)
 
 
 @app.route('/api/v1/sites/<site>/sensors/<sensor>')
@@ -184,9 +188,11 @@ def get_sensor_dates(site, sensor):
      
         resources.append(date_map)
             
-    return json.dumps({'site' : site,
-                       'sensor' : sensor,
-                       'resources' : resources})
+    data = {'site' : site,
+            'sensor' : sensor,
+            'resources' : resources}
+    topic = "List of dates in site \"" + site + "\", sensor \"" + sensor + "\"" 
+    return render_template('data.html', topic=topic, data=data)
 
  
 @app.route('/api/v1/sites/<site>/sensors/<sensor>/dates/<date>')

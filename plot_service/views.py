@@ -139,5 +139,13 @@ def api():
         site = request.form['site']
         sensor = request.form['sensor']
         date = request.form['date']
-        return redirect(url_for('get_sensor_dates', site=site, sensor=sensor))
+        if site == "" and sensor == "" and date == "":
+            return redirect(url_for('list_sites', site=site))
+        if site != "" and sensor == "" and date == "":
+            return redirect(url_for('list_sensors', site=site))
+        elif site != "" and sensor != "" and date == "":
+            return redirect(url_for('get_sensor_dates', site=site, sensor=sensor))
+        elif site != "" and sensor != "" and date != "":
+            return redirect(url_for('get_sensor_dates', site=site, sensor=sensor))
+
     return render_template('api.html', form=form)
