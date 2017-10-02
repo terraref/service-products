@@ -7,7 +7,7 @@ from PIL import Image
 from flask import send_file, send_from_directory, safe_join, request
 from plot_service import app
 from plot_service.exceptions import InvalidUsage
-#from terrautils.gdal import clip_raster, extract_boundary
+from terrautils.gdal import clip_raster
 from terrautils.betydb import get_experiments
 #from terrautils.sensors import get_sitename, get_sensor_product
 #from terrautils.sensors import get_attachment_name, check_sensor
@@ -193,10 +193,25 @@ def get_sensor_dates(site, sensor):
 def download_data(site, sensor, date):
     # TODO: download the data file
     if request.args:    # return clipped file
-        plot_name = request.args.get('sitename')
-    else:   # download the date file
-        pass
-    return ""
+        #sitename = request.args.get('sitename')
+        #mode = request.args.get('mode')
+        sitename = "Ashland Bottoms KSU 2016 Season Range 10 Pass 7"
+        path = "/projects/arpae/terraref/sites/ua-mac/Level_1/fullfield/2017-05-29/"
+        raster_path = path + "flirIrCamera_fullfield.tif"#"fullfield_L1_ua-mac_2017-05-29_rgb.tif"
+        features_path = path + "index_2017-05-29.shp"
+        #boundary = get_sitename_boundary(sitename)
+        plot, gt = clip_raster(raster_path, features_path)
+        plot = np.dstack(plot)
+        image = Image.fromarray(plot)
+ 
+        byte_io = BytesIO()
+        image.save(byte_io, 'PNG')
+        byte_io.seek(0)
+        attachment_filename = "asdf" #plot_attachment_name(sitename, sensor, date, product)
+        return send_file(byte_io, as_attachment=True,
+                         attachment_filename=attachment_filename)
+
+
 
 '''
 @app.route('/api/v1/sites/<site>/sensors/<sensor>/<date>')
