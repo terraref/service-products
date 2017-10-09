@@ -15,8 +15,11 @@ PLOT_SERVICE_HOST = 'http://141.142.170.38:8000/'
 
 class ReusableForm(Form):
     site = TextField('Site:', validators=[validators.required()])
+    sitename = TextField('Site Name:', validators=[validators.required()])
     sensor = TextField('Sensor:', validators=[validators.required()])
     date = TextField('Date:', validators=[validators.required()])
+    start_date = TextField('Start Date:', validators=[validators.required()])
+    end_date = TextField('End Date:', validators=[validators.required()])
 
 
 def get_download_links(station, sensor, sitename, starting_date,
@@ -132,20 +135,16 @@ def download():
 
     return render_template('download_links.html')
 
-@app.route('/api', methods=['GET','POST'])
-def api():
+
+@app.route('/catalog', methods=['GET','POST'])
+def catalog():
     form = ReusableForm(request.form)
     if request.method == 'POST':
+        site_name = request.form['sitename']
         site = request.form['site']
         sensor = request.form['sensor']
-        date = request.form['date']
-        if site == "" and sensor == "" and date == "":
-            return redirect(url_for('list_sites', site=site))
-        if site != "" and sensor == "" and date == "":
-            return redirect(url_for('list_sensors', site=site))
-        elif site != "" and sensor != "" and date == "":
-            return redirect(url_for('get_sensor_dates', site=site, sensor=sensor))
-        elif site != "" and sensor != "" and date != "":
-            return redirect(url_for('get_sensor_dates', site=site, sensor=sensor))
+        start_date = request.form['start_date']
+        end_date = request.form['end_date']
+         
 
-    return render_template('api.html', form=form)
+    return render_template('catalog.html', form=form)

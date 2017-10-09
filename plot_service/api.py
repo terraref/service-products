@@ -77,9 +77,9 @@ def get_experiment_dates(experiment_name):
     return None 
 #TODO: functions ABOVE need to move to terrautils in the future
 
-#@app.route('/api')
-#def api_active():
-#    return 'API ACTIVE'
+@app.route('/api')
+def api_active():
+    return 'API ACTIVE'
 
 
 @app.route('/api/v1/sites')
