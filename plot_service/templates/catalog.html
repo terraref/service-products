@@ -35,7 +35,9 @@
       <br>
       <label for="end_date">End Date:</label>
       <input type="text" class="form-control" id="end_date" placeholder="(optional) YYYY-MM-DD, e.g. 2016-06-09, 2017-05-01" name="end_date">
-
+      <br>
+      <label for="experiment">Experiment:</label>
+      <input type="text" class="form-control" id="experiment" placeholder="(optional) e.g. MAC Season 1: Biomass" name="experiment">
     </div>
     <button type="submit" class="btn btn-success">Search</button>
   </form>
@@ -60,7 +62,7 @@
             {% endif %}
         {% endwith %}
      
-    e.g. ua-mac, MAC Field Scanner Season 4 Range 10 Column 10, flirIrCamera, 2017-05-01
+    e.g. site: a-mac, sitename: MAC Field Scanner Season 4 Range 10 Column 10, sensor: flirIrCamera, date: 2017-05-01, experiment: MAC Season 1: Biomass
     <img src="http://terraref.org/images/home/field_scanner.jpg" class="img-rounded" alt="Field Scanner" width="304" height="236">
 <br>            
 </div>

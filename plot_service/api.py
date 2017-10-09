@@ -7,7 +7,7 @@ from PIL import Image
 from flask import send_file, send_from_directory, safe_join, request, render_template
 from plot_service import app
 from plot_service.exceptions import InvalidUsage
-from terrautils.gdal import clip_raster
+from terrautils.gdal import clip_raster, list_raster, load_boundary
 from terrautils.betydb import get_experiments
 #from terrautils.sensors import get_sitename, get_sensor_product
 #from terrautils.sensors import get_attachment_name, check_sensor
@@ -157,7 +157,6 @@ def get_sensor_dates(site, sensor):
     """ Get dates associated with sensor """
     resources = []
     dates = list_sensor_dates(site, sensor)
-    print site, sensor
     if dates:
         dates = [datetime.strptime(date, '%Y-%m-%d').date() for date in dates]
         dates.sort()
@@ -206,7 +205,22 @@ def get_sensor_dates(site, sensor):
     return data
 
 
- 
+
+@app.route('/api/v1/sites/<site>/sensors/<sensor>/sitename/<sitename>')
+def list_files(site, sitename, sensor):
+    data = get_sensor_dates(site, sensor)
+    dates = data['resources']
+    
+    files = []
+    for date in dates:
+        path = '/projects/arpae/terraref/sites/' + site + '/Level_1/' + sensor + '/' + date['title'] + '/rgb_tile_index_L1_' + site + '_' + date['title'] + '_left.geojson'
+        files.append(list_raster(load_boundary(sitename), path)) 
+
+    return files
+        
+
+
+
 @app.route('/api/v1/sites/<site>/sensors/<sensor>/dates/<date>')
 def download_data(site, sensor, date):
     # TODO: download the data file

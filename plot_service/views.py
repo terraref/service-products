@@ -20,6 +20,7 @@ class ReusableForm(Form):
     date = TextField('Date:', validators=[validators.required()])
     start_date = TextField('Start Date:', validators=[validators.required()])
     end_date = TextField('End Date:', validators=[validators.required()])
+    experiment = TextField('Experiment:', validators=[validators.required()])
 
 
 def get_download_links(station, sensor, sitename, starting_date,
@@ -143,8 +144,12 @@ def catalog():
         site_name = request.form['sitename']
         site = request.form['site']
         sensor = request.form['sensor']
-        start_date = request.form['start_date']
-        end_date = request.form['end_date']
+        start = request.form['start_date']
+        end = request.form['end_date']
+        experiment = request.form['experiment']
+        if site_name != "" or site != "":
+            if sensor != "":
+                return redirect(url_for('catalog_list_dates', site=site, sensor=sensor, start=start, end=end, experiment=experiment))
          
 
     return render_template('catalog.html', form=form)
