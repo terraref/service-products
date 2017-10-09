@@ -14,7 +14,7 @@ itsdangerous==0.24
 l==0.11.0
 numpy==1.13.1
 olefile==0.44
--e git+ssh://git@github.com/terraref/terrautils@master#egg=terrautils-1.0.0
+-e git+ssh://git@github.com/terraref/terrautils@list_rasters#egg=terrautils-1.0.0
 #https://opensource.ncsa.illinois.edu/bitbucket/projects/CATS/repos/pyclowder2/get/master.zip
 pygdal==2.2.0.3
 python-dateutil==2.6.1

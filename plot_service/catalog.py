@@ -22,8 +22,10 @@ def catalog_list_dates(site, sensor):
 
 
 
-
-
+@app.route('/catalog/v1/sites/<site>/sensors/<sensor>/sitename/<sitename>')
+def catalog_list_files(site, sitename, sensor):
+    topic = "List of files in site \"" + site + "\", sensor \"" + sensor + "\"" + "\", sitename \"" + sitename + "\""
+    return render_template('data.html', topic=topic, data=api.list_files(site, sitename, sensor))
 
 
 

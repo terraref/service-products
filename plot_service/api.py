@@ -7,8 +7,8 @@ from PIL import Image
 from flask import send_file, send_from_directory, safe_join, request, render_template
 from plot_service import app
 from plot_service.exceptions import InvalidUsage
-from terrautils.gdal import clip_raster, list_raster, load_boundary
-from terrautils.betydb import get_experiments
+from terrautils.gdal import clip_raster
+from terrautils.betydb import get_experiments, get_sites
 #from terrautils.sensors import get_sitename, get_sensor_product
 #from terrautils.sensors import get_attachment_name, check_sensor
 #from terrautils.sensors import plot_attachment_name, check_site
@@ -17,6 +17,9 @@ from terrautils.sensors import Sensors as Sensors_module
 import json
 import logging
 from datetime import datetime
+import geojson
+from shapely import geometry
+from shapely.wkt import loads
 
 TERRAREF_BASE = '/projects/arpae/terraref/sites'
 Sensors = Sensors_module(TERRAREF_BASE, 'ua-mac') # a Sensors instance with a dummy site
@@ -75,6 +78,41 @@ def get_experiment_dates(experiment_name):
         if experiment_name == e['name']:
             return [e['start_date'], e['end_date']]
     return None 
+
+
+def load_boundary(sitename):
+    """ Extract and load boundary multipoly string given sitename
+    
+    Args:
+        sitename (str)
+
+    Returns: polygon string
+    """
+    return loads('POLYGON ((-111.9748940034814 33.07486301094484, -111.9748841060115 33.07486301094484, -111.9748841060115 33.07485171718604, -111.9748940034814 33.07485171718604, -111.9748940034814 33.07486301094484))')
+    site_info = get_sites(sitename=sitename)
+    boundary_poly = loads(site_info[0]['geometry'])   # extract and load boundary multipoly string
+    return boundary_poly
+
+
+def list_raster(boundary_poly, tile_indexes_path):
+    """ List rasters within the boundary
+    
+    Args:
+        boundary (MultiPolygon): boundary, a multipolygon object
+        tile_indexes (str): path to a list of geojson collection
+
+    Returns: file locations that have intersection
+    """
+    # load each tile index and check intersection with boundary_poly
+    tile_indexes_js = geojson.loads(open(tile_indexes_path).read())
+    intersection = []
+    for feature in tile_indexes_js['features']:
+        tile_index_poly = geometry.asShape(feature['geometry'])
+        if boundary_poly.intersects(tile_index_poly):
+            intersection.append(feature['properties']['location'])
+
+    return intersection
+
 #TODO: functions ABOVE need to move to terrautils in the future
 
 @app.route('/api')
@@ -207,16 +245,26 @@ def get_sensor_dates(site, sensor):
 
 
 @app.route('/api/v1/sites/<site>/sensors/<sensor>/sitename/<sitename>')
+def api_list_files(site, sitename, sensor):
+    return json.dumps(list_files(site, sitename, sensor))
+
+
 def list_files(site, sitename, sensor):
-    data = get_sensor_dates(site, sensor)
-    dates = data['resources']
+    raw = get_sensor_dates(site, sensor)
+    dates = raw['resources']
     
     files = []
-    for date in dates:
-        path = '/projects/arpae/terraref/sites/' + site + '/Level_1/' + sensor + '/' + date['title'] + '/rgb_tile_index_L1_' + site + '_' + date['title'] + '_left.geojson'
-        files.append(list_raster(load_boundary(sitename), path)) 
-
-    return files
+    #for date in dates:
+        #path = '/projects/arpae/terraref/sites/' + site + '/Level_1/' + sensor + '/' + date['title'] + '/rgb_tile_index_L1_' + site + '_' + date['title'] + '_left.geojson'
+        #files.append(list_raster(load_boundary(sitename), path)) 
+    
+    path = '/projects/arpae/terraref/sites/ua-mac/Level_1/fullfield/2017-05-29/rgb_tile_index_L1_ua-mac_2017-05-29_left.geojson'
+    files += list_raster(load_boundary(sitename), path)
+    
+    data = []
+    for f in files:
+        data.append({'title': f})
+    return {'resources' : data}
         
 
 
