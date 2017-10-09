@@ -4,7 +4,7 @@ from osgeo import gdal
 from flask import render_template, safe_join, flash, request, Flask, redirect, url_for
 from flask import send_file, send_from_directory
 from wtforms import Form, TextField, TextAreaField, validators, StringField, SubmitField
-from plot_service import app, api
+from plot_service import app, api, catalog
 from terrautils.gdal import get_raster_extents
 #from terrautils.sensors import check_site, check_sensor, get_file_paths
 

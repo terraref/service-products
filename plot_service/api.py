@@ -83,6 +83,10 @@ def api_active():
 
 
 @app.route('/api/v1/sites')
+def api_list_sites():
+    return json.dumps(list_sites()) 
+
+
 def list_sites():
     """ Get all sites """
     sites = Sensors.get_sites()
@@ -95,7 +99,7 @@ def list_sites():
         site_map_list.append(site_map)
     data = {'resources' : site_map_list}
     topic = "List of sites"
-    return render_template('data.html', topic=topic, data=data)
+    return data
 
 
 @app.route('/api/v1/sites/<site>')
@@ -112,6 +116,10 @@ def get_site(site):
 
 
 @app.route('/api/v1/sites/<site>/sensors')
+def api_list_sensors(site):
+    return json.dumps(list_sensors(site))
+
+
 def list_sensors(site):
     """ Get all sensor associated with a site """
     sensors = Sensors.get_sensors(site)
@@ -124,9 +132,8 @@ def list_sensors(site):
 
     data = {'site' : site, 
             'resources' : sensor_list}
-
-    topic = "List of sensors in site \"" + site + "\""
-    return render_template('data.html', topic=topic, data=data)
+    
+    return data
 
 
 @app.route('/api/v1/sites/<site>/sensors/<sensor>')
@@ -142,6 +149,10 @@ def get_sensor_data(site, sensor):
 
 
 @app.route('/api/v1/sites/<site>/sensors/<sensor>/dates')
+def api_get_sensor_dates(site, sensor):
+    return json.dumps(get_sensor_dates(site, sensor))
+
+
 def get_sensor_dates(site, sensor):
     """ Get dates associated with sensor """
     resources = []
@@ -191,8 +202,9 @@ def get_sensor_dates(site, sensor):
     data = {'site' : site,
             'sensor' : sensor,
             'resources' : resources}
-    topic = "List of dates in site \"" + site + "\", sensor \"" + sensor + "\"" 
-    return render_template('data.html', topic=topic, data=data)
+
+    return data
+
 
  
 @app.route('/api/v1/sites/<site>/sensors/<sensor>/dates/<date>')
@@ -216,7 +228,6 @@ def download_data(site, sensor, date):
         attachment_filename = "asdf" #plot_attachment_name(sitename, sensor, date, product)
         return send_file(byte_io, as_attachment=True,
                          attachment_filename=attachment_filename)
-
 
 
 '''
