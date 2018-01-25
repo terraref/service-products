@@ -11,10 +11,12 @@ setup(
         'requests',
         'Pillow',
         'terrautils',
-		'pyclowder'
+	'pyclowder',
+        'geojson',
+        'shapely',
     ],
     dependency_links=[
-        'git+https://github.com/terraref/terrautils#egg=terrautils-1.0.0',
-		'https://opensource.ncsa.illinois.edu/bitbucket/projects/CATS/repos/pyclowder2'
+        'git+https://github.com/terraref/terrautils@master#egg=terrautils-1.0.0',
+        'https://opensource.ncsa.illinois.edu/bitbucket/projects/CATS/repos/pyclowder2'
     ],
 )

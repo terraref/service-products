@@ -19,10 +19,37 @@ DATASETS = os.path.join(HOST, 'api/datasets')
 
 
 def get_plot_id(sitename):
-    """Get sensor ID from geostreams based on sitename"""
+    """return sensor ID from geostreams based on sitename"""
 
     sensor = get_sensor_by_name(None, HOST, KEY, sitename)
     return sensor['id'] if sensor else None
+
+
+# TODO this should be from the pyclowder package
+def get_sensor_list():
+    """return a list of all sensors"""
+
+    r = requests.get(STREAMS)
+    r.raise_for_status()
+    return r.json()
+
+
+def unique_sensor_names(sensors=None):
+    """returns a list of unique sensor names"""
+
+    print 'getting sensors'
+    if not sensors:
+        sensors = get_sensor_list()
+    print 'found %d sensors' % len(sensors)
+
+    rsp = set()
+    for s in sensors:
+        if s['name'].endswith(')'):
+            rsp.add(s['name'].split('(')[0].strip())
+        else:
+            rsp.add(s['name'])
+    print '%d unique sensors' % len(rsp)
+    return list(rsp)
 
 
 @app.route('/api/v2/plots')
@@ -62,13 +89,7 @@ def api2_sensor_collection():
 
     # otherwise turn unique portion of stream names as list
     if request.args.get('names', 'false') == 'true':
-        sensors = set()
-        for s in r.json():
-            if s['name'].endswith(')'):
-                sensors.add(s['name'].split('(')[0].strip())
-            else:
-                sensors.add(s['name'])
-        return jsonify(list(sensors))
+        return jsonify(filter_sensors(r.json()))
 
     # return all streams
     return jsonify(r.json())

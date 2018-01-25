@@ -1,13 +1,10 @@
-# Byte-compiled / optimized / DLL files
+led / optimized / DLL files
 __pycache__/
 *.py[cod]
 *$py.class
 
 # C extensions
 *.so
-
-# Editor temporary extensions
-*.swp
 
 # Distribution / packaging
 .Python
@@ -26,6 +23,7 @@ wheels/
 *.egg-info/
 .installed.cfg
 *.egg
+MANIFEST
 
 # PyInstaller
 #  Usually these files are written by a python script from a template
@@ -54,6 +52,8 @@ coverage.xml
 
 # Django stuff:
 *.log
+.static_storage/
+.media/
 local_settings.py
 
 # Flask stuff:
@@ -87,6 +87,8 @@ celerybeat-schedule
 env/
 venv/
 ENV/
+env.bak/
+venv.bak/
 
 # Spyder project settings
 .spyderproject
@@ -100,4 +102,3 @@ ENV/
 
 # mypy
 .mypy_cache/
-
