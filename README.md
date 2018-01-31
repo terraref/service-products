@@ -1,4 +1,4 @@
-# TerraREF Plot Service
+# TERRA REF Plot Service
 
 *PROOF OF CONCEPT*
 
