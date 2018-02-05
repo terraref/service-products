@@ -15,6 +15,6 @@ ENV CLOWDER_URL https://terraref.ncsa.illinois.edu/clowder
 ENV SERVICE_PORT 8080
 ENV SERVICE_HOST 0.0.0.0
 
-PORTS 8080
+EXPOSE 8080
 
 CMD flask run -h ${SERVICE_HOST} -p ${SERVICE_PORT}

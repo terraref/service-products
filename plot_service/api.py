@@ -21,7 +21,7 @@ import geojson
 from shapely import geometry
 from shapely.wkt import loads
 
-TERRAREF_BASE = '/projects/arpae/terraref/sites'
+TERRAREF_BASE = os.environ.get('TERRAREF_BASE','/projects/arpae/terraref/sites')
 Sensors = Sensors_module(TERRAREF_BASE, 'ua-mac') # a Sensors instance with a dummy site
 
 ####################################################################
