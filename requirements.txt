@@ -13,6 +13,7 @@ influxdb==4.1.1
 itsdangerous==0.24
 l==0.11.0
 olefile==0.44
+git+https://opensource.ncsa.illinois.edu/bitbucket/scm/cats/pyclowder2.git#egg=pyclowder-2.0.0
 git+git://github.com/terraref/terrautils#egg=terrautils-1.0.0
 #https://opensource.ncsa.illinois.edu/bitbucket/projects/CATS/repos/pyclowder2/get/master.zip
 pygdal==1.10.1.3

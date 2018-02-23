@@ -37,10 +37,8 @@ def get_sensor_list():
 def unique_sensor_names(sensors=None):
     """returns a list of unique sensor names"""
 
-    print 'getting sensors'
     if not sensors:
         sensors = get_sensor_list()
-    print 'found %d sensors' % len(sensors)
 
     rsp = set()
     for s in sensors:
@@ -48,7 +46,7 @@ def unique_sensor_names(sensors=None):
             rsp.add(s['name'].split('(')[0].strip())
         else:
             rsp.add(s['name'])
-    print '%d unique sensors' % len(rsp)
+
     return list(rsp)
 
 
@@ -89,7 +87,7 @@ def api2_sensor_collection():
 
     # otherwise turn unique portion of stream names as list
     if request.args.get('names', 'false') == 'true':
-        return jsonify(filter_sensors(r.json()))
+        return jsonify(unique_sensor_names(r.json()))
 
     # return all streams
     return jsonify(r.json())
