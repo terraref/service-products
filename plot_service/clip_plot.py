@@ -5,7 +5,6 @@ from PIL import Image, ImageDraw
 import numpy as np
 
 
-
 def clip_raster(rast_path, features_path, gt=None, nodata=-9999):
     def array_to_image(a):
         '''

@@ -1,0 +1,72 @@
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html>
+    <head>
+        <title>Plot Servie</title>
+       <!--  --!>
+       <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+       <link rel="stylesheet" media="screen" href ="static/bootstrap.min.css">
+       <link rel="stylesheet" href="static/bootstrap-theme.min.css">
+       <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
+       <meta name="viewport" content = "width=device-width, initial-scale=1.0">
+ 
+    </head>
+    <body>
+ 
+ 
+<div class="container">
+ 
+ 
+  <h2>Plot Service</h2>
+  <form  action="" method="post" role="form">
+    {{ form.csrf }}
+    <div class="form-group">
+      <label for="site">Site:</label>
+      <input type="text" class="form-control" placeholder="e.g. ua-mac, ksu, danforth" id="site" name="site">
+      <br>
+      <label for="sitename">Site Name:</label>
+      <input type="text" class="form-control" placeholder="e.g. MAC Field Scanner Season 4 Range 10 Column 10" id="sitename" name="sitename">
+      <br>
+      <label for="sensor">Sensor:</label>
+      <input type="text" class="form-control" placeholder="(optional) e.g. flirIrCamera, fullfiled" id="sensor" name="sensor">
+      <br>
+      <label for="start_date">Start Date:</label>
+      <input type="text" class="form-control" id="start_date" placeholder="(optional) YYYY-MM-DD, e.g. 2016-06-09, 2017-05-01" name="start_date">
+      <br>
+      <label for="end_date">End Date:</label>
+      <input type="text" class="form-control" id="end_date" placeholder="(optional) YYYY-MM-DD, e.g. 2016-06-09, 2017-05-01" name="end_date">
+      <br>
+      <label for="experiment">Experiment:</label>
+      <input type="text" class="form-control" id="experiment" placeholder="(optional) e.g. MAC Season 1: Biomass" name="experiment">
+    </div>
+    <button type="submit" class="btn btn-success">Search</button>
+  </form>
+
+  <br>
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+ 
+        {% for message in messages %}
+            {% if "Error" not in message[1]: %}
+                <div class="alert alert-info">
+                <strong>Success! </strong> {{ message[1] }}
+                </div>
+            {% endif %}
+ 
+            {% if "Error" in message[1]: %}
+                <div class="alert alert-warning">
+                {{ message[1] }}
+                </div>
+            {% endif %}
+        {% endfor %}
+            {% endif %}
+        {% endwith %}
+     
+    e.g. site: a-mac, sitename: MAC Field Scanner Season 4 Range 10 Column 10, sensor: flirIrCamera, date: 2017-05-01, experiment: MAC Season 1: Biomass <br />
+    list_rasters demo link: http://localhost:8080/catalog/v1/sites/ua-mac/sensors/flirIrCamera/sitename/MAC%20Field%20Scanner%20Season%204%20Range%2010%20Column%2010
+    <img src="http://terraref.org/images/home/field_scanner.jpg" class="img-rounded" alt="Field Scanner" width="304" height="236">
+<br>            
+</div>
+</body>
+</html>
+

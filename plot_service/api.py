@@ -4,130 +4,318 @@ import json
 import numpy as np
 from io import BytesIO
 from PIL import Image
-from flask import send_file, send_from_directory, safe_join, request
+from flask import send_file, send_from_directory, safe_join, request, render_template
 from plot_service import app
 from plot_service.exceptions import InvalidUsage
-from plot_service.clip_plot import clip_raster
+from terrautils.gdal import clip_raster
+from terrautils.betydb import get_experiments, get_sites
+#from terrautils.sensors import get_sitename, get_sensor_product
+#from terrautils.sensors import get_attachment_name, check_sensor
+#from terrautils.sensors import plot_attachment_name, check_site
+#from terrautils.sensors import get_file_paths
+from terrautils.sensors import Sensors as Sensors_module
+import json
+import logging
+from datetime import datetime
+import geojson
+from shapely import geometry
+from shapely.wkt import loads
 
-TERRAREF_BASE = '/projects/arpae/terraref'
+TERRAREF_BASE = '/projects/arpae/terraref/sites'
+Sensors = Sensors_module(TERRAREF_BASE, 'ua-mac') # a Sensors instance with a dummy site
 
+####################################################################
+def check_site(station):
+    """ Checks for valid station given the station name, and return its
+    path in the file system.
+    """
 
-def get_sitename(site, date, range_, column):
+    if not os.path.exists(TERRAREF_BASE):
+        raise InvalidUsage('Could not find data, try setting TERRAREF_BASE environmental variable')
 
-    sitename = 'MAC Field Scanner Season 4 Range {} Column {}'.\
-              format(range_, column)
-    return sitename
-
-
-def get_sitename_boundary(sitename):
-
-    api = 'lxPgymT3ULP2Y13qU02Zp7XjBMUPRICspc7cYbQX'
-
-    url = ('https://terraref.ncsa.illinois.edu/bety/sites.json' +
-           '?key={}&sitename={}').format(api, sitename)
-
-    r = requests.get(url, auth=('xawjx1996928', 'xawjx88932489'))
-    data = r.json()[0]['site']['geometry'][10:-2]
-    coords = data.split(',')
-
-    vertices = []
-    for coord in coords:
-        x_and_y = coord.split()[:2]
-        x_and_y[0] = float(x_and_y[0])
-        x_and_y[1] = float(x_and_y[1])
-        vertices.append(x_and_y)
-
-    boundary = {
-        'type': 'Polygon',
-        'coordinates': [vertices]
-    }
-
-    return json.dumps(boundary)
-
-
-def check_site(site):
-    ''' check for valid site given the site name '''
-    terraref = os.environ.get('TERRAREF_BASE', TERRAREF_BASE)
-    if not os.path.exists(terraref):
-        raise InvalidUsage('Could not find TerraREF data, try setting '
-                           'TERRAREF_BASE environmental variable')
-
-    sitepath = safe_join(terraref, 'sites', site)
+    sitepath = os.path.join(TERRAREF_BASE, station)
     if not os.path.exists(sitepath):
-        raise InvalidUsage('unknown site', payload={'site': site})
+        raise InvalidUsage('unknown site', payload={'site': station})
 
     return sitepath
 
 
-def check_sensor(site, sensor, date=None):
-    """check for valid sensor with optional date """
+def check_sensor(station, sensor, date=None):
+    """ Checks for valid sensor with optional date, and return its path
+    in the file system.
+    """
 
-    sitepath = check_site(site)
+    sitepath = check_site(station)
 
-    sensorpath = safe_join(sitepath, 'Level_1', sensor)
+    sensorpath = os.path.join(sitepath, 'Level_1', sensor)
     if not os.path.exists(sensorpath):
         raise InvalidUsage('unknown sensor',
-                           payload={'site': site, 'sensor': sensor})
+                           payload={'site': station, 'sensor': sensor})
 
     if not date:
         return sensorpath
 
-    datepath = safe_join(sensorpath, date)
-    print("datepath = {}".format(datepath))
+    datepath = os.path.join(sensorpath, date)
+    logging.info("datepath = {}".format(datepath))
+
     if not os.path.exists(datepath):
         raise InvalidUsage('sensor data not available for given date',
-                           payload={'site': site, 'sensor': sensor,
+                           payload={'site': station, 'sensor': sensor,
                                     'date': date})
 
     return datepath
 
 
-def get_sensor_product(site, sensor):
-    """Returns the downloadable product for each site-sensor pair"""
+def list_sensor_dates(station, sensor):
+    """ Return a list of all dates of the sensor """
+    sensor_path = check_sensor(station, sensor)
+    return os.listdir(sensor_path)
 
-    # TODO do something much more intelligent
-    return "ff.tif"
-
-
-def get_attachment_name(site, sensor, date, product):
-    """Encodes site, sensor, and date to create a unqiue attachment name"""
-
-    root, ext = os.path.splitext(product)
-    return "{}-{}-{}.{}".format(site, sensor, date, ext)
-
-
-def plot_attachment_name(sitename, sensor, date, product):
-    """Encodes sitename, sensor, and date to create a unqiue attachment name"""
-
-    root, ext = os.path.splitext(product)
-    return "{}-{}-{}.{}".format(sitename, sensor, date, ext) 
+def get_experiment_dates(experiment_name):
+    """ Get the given experiment's starting date and end date """
+    experiments = get_experiments()
+    for e in experiments:
+        if experiment_name == e['name']:
+            return [e['start_date'], e['end_date']]
+    return None 
 
 
+def load_boundary(sitename):
+    """ Extract and load boundary multipoly string given sitename
+    
+    Args:
+        sitename (str)
+
+    Returns: polygon string
+    """
+    return loads('POLYGON ((-111.9748940034814 33.07486301094484, -111.9748841060115 33.07486301094484, -111.9748841060115 33.07485171718604, -111.9748940034814 33.07485171718604, -111.9748940034814 33.07486301094484))')
+    site_info = get_sites(sitename=sitename)
+    boundary_poly = loads(site_info[0]['geometry'])   # extract and load boundary multipoly string
+    return boundary_poly
+
+
+def list_raster(boundary_poly, tile_indexes_path):
+    """ List rasters within the boundary
+    
+    Args:
+        boundary (MultiPolygon): boundary, a multipolygon object
+        tile_indexes (str): path to a list of geojson collection
+
+    Returns: file locations that have intersection
+    """
+    # load each tile index and check intersection with boundary_poly
+    tile_indexes_js = geojson.loads(open(tile_indexes_path).read())
+    intersection = []
+    for feature in tile_indexes_js['features']:
+        tile_index_poly = geometry.asShape(feature['geometry'])
+        if boundary_poly.intersects(tile_index_poly):
+            intersection.append(feature['properties']['location'])
+
+    return intersection
+
+#TODO: functions ABOVE need to move to terrautils in the future
+
+@app.route('/api')
+def api_active():
+    return 'API ACTIVE'
+
+
+@app.route('/api/v1/sites')
+def api_list_sites():
+    return json.dumps(list_sites()) 
+
+
+def list_sites():
+    """ Get all sites """
+    sites = Sensors.get_sites()
+    site_map_list = []
+    for site in sites:
+        site_map = {'_type' : 'str',
+                    'id' : site,
+                    'title' : site,
+                    'href' : '/sites/' + site}
+        site_map_list.append(site_map)
+    data = {'resources' : site_map_list}
+    topic = "List of sites"
+    return data
+
+
+@app.route('/api/v1/sites/<site>')
+def get_site(site):
+    """ Get the site's metadata """
+    site_map = {'_type' : 'site',
+                'title' : site,
+                'site' : site,
+                'collections' : [{'id' : 'sensors',
+                                  'title' : 'Sensors',
+                                  'href' : '/sites/' + site + '/sensors'}]}
+
+    return json.dumps(site_map)
+
+
+@app.route('/api/v1/sites/<site>/sensors')
+def api_list_sensors(site):
+    return json.dumps(list_sensors(site))
+
+
+def list_sensors(site):
+    """ Get all sensor associated with a site """
+    sensors = Sensors.get_sensors(site)
+    sensor_list = []
+    for sensor in sensors:
+        sensor_map = {'id' : sensor,
+                      'title' : sensor,
+                      'href' : '/sites/' + site + '/sensors/' + sensor}
+        sensor_list.append(sensor_map)
+
+    data = {'site' : site, 
+            'resources' : sensor_list}
+    
+    return data
+
+
+@app.route('/api/v1/sites/<site>/sensors/<sensor>')
+def get_sensor_data(site, sensor):
+    """ Get all data associated with sensor """
+    sensor_collections = [{'id' : 'dates',
+                           'title' : 'Dates',
+                           'href' : '/sites/' + site + '/sensors/' + sensor}]
+
+    return json.dumps({'site' : site,
+                       'sensor' : sensor,
+                       'collections' : sensor_collections})
+
+
+@app.route('/api/v1/sites/<site>/sensors/<sensor>/dates')
+def api_get_sensor_dates(site, sensor):
+    return json.dumps(get_sensor_dates(site, sensor))
+
+
+def get_sensor_dates(site, sensor):
+    """ Get dates associated with sensor """
+    resources = []
+    dates = list_sensor_dates(site, sensor)
+    if dates:
+        dates = [datetime.strptime(date, '%Y-%m-%d').date() for date in dates]
+        dates.sort()
+
+        if request.args:
+             # handle query
+             start = request.args.get('start')
+             end = request.args.get('end')
+             experiment = request.args.get('experiment')
+
+             ordered_dates = []
+             start_date = dates[0]        # default query start date
+             end_date = dates[-1]         # default query end date
+             
+             if start:
+                 start_date = datetime.strptime(start, '%Y-%m-%d').date()
+             if end:
+                 end_date = datetime.strptime(end, '%Y-%m-%d').date()
+             if experiment:
+                experiment_dates = get_experiment_dates(experiment)
+                if experiment_dates == None:
+                   dates = []
+                else:
+                   start_date = datetime.strptime(experiment_dates[0], '%Y-%m-%d').date()
+                   end_date = datetime.strptime(experiment_dates[1], '%Y-%m-%d').date()
+             
+             for date in dates:
+                 if date >= start_date and date <= end_date:
+                     ordered_dates.append(date)
+             
+             dates = ordered_dates
+
+        dates = [date.strftime('%Y-%m-%d') for date in dates]
+
+    for date in dates:
+        date_map = {'id' : date,
+                    'title' : date,
+                    'href' : '/sites/' + site + '/sensors/' + sensor + '/dates/' + date}
+     
+        resources.append(date_map)
+            
+    data = {'site' : site,
+            'sensor' : sensor,
+            'resources' : resources}
+
+    return data
+
+
+
+@app.route('/api/v1/sites/<site>/sensors/<sensor>/sitename/<sitename>')
+def api_list_files(site, sitename, sensor):
+    return json.dumps(list_files(site, sitename, sensor))
+
+
+def list_files(site, sitename, sensor):
+    raw = get_sensor_dates(site, sensor)
+    dates = raw['resources']
+    
+    files = []
+    #for date in dates:
+        #path = '/projects/arpae/terraref/sites/' + site + '/Level_1/' + sensor + '/' + date['title'] + '/rgb_tile_index_L1_' + site + '_' + date['title'] + '_left.geojson'
+        #files.append(list_raster(load_boundary(sitename), path)) 
+    
+    path = '/projects/arpae/terraref/sites/ua-mac/Level_1/fullfield/2017-05-29/rgb_tile_index_L1_ua-mac_2017-05-29_left.geojson'
+    files += list_raster(load_boundary(sitename), path)
+    
+    data = []
+    for f in files:
+        data.append({'title': f})
+    return {'resources' : data}
+        
+
+
+
+@app.route('/api/v1/sites/<site>/sensors/<sensor>/dates/<date>')
+def download_data(site, sensor, date):
+    # TODO: download the data file
+    if request.args:    # return clipped file
+        #sitename = request.args.get('sitename')
+        #mode = request.args.get('mode')
+        sitename = "Ashland Bottoms KSU 2016 Season Range 10 Pass 7"
+        path = "/projects/arpae/terraref/sites/ua-mac/Level_1/fullfield/2017-05-29/"
+        raster_path = path + "flirIrCamera_fullfield.tif"#"fullfield_L1_ua-mac_2017-05-29_rgb.tif"
+        features_path = path + "index_2017-05-29.shp"
+        #boundary = get_sitename_boundary(sitename)
+        plot, gt = clip_raster(raster_path, features_path)
+        plot = np.dstack(plot)
+        image = Image.fromarray(plot)
+ 
+        byte_io = BytesIO()
+        image.save(byte_io, 'PNG')
+        byte_io.seek(0)
+        attachment_filename = "asdf" #plot_attachment_name(sitename, sensor, date, product)
+        return send_file(byte_io, as_attachment=True,
+                         attachment_filename=attachment_filename)
+
+
+'''
 @app.route('/api/v1/sites/<site>/sensors/<sensor>/<date>')
 def sensor(site, sensor, date):
     """Return a downloaded version of the sensor """
     'Sitename = MAC Field Scanner Season 4 Range 10 Column 1'
     # maps from site and sensor to a filename that should be
     # available for every date
-    product = get_sensor_product(site, sensor)
 
-    datepath = check_sensor(site, sensor, date)
-    path = os.path.join(datepath, product)
-    if not os.path.exists(path):
+    paths = get_file_paths(site, sensor, date)
+    product = paths[0].split('/')[-1]
+
+    if all(not os.path.exists(path) for path in paths):
         raise InvalidUsage('sensor data not available for given date',
                            payload={'site': site, 'sensor': sensor,
                                     'date': date})
 
     sitename = request.args.get('sitename', '')
     if sitename:
-        s = sitename.split('Range ')
-        coord = s[1].split(' Column ')
-        range_ = int(coord[0])
-        column = int(coord[1])
-        boundary = get_sitename_boundary(sitename)
-        plot = clip_raster(path, boundary)
+        boundary = get_site_boundaries(sitename=sitename)[sitename]
+        boundary = extract_boundary(boundary)
 
-        plot = np.dstack(plot)
+        plot = clip_raster(paths[0], boundary)
+        print(plot[0].shape)
+        plot = np.dstack(plot[0])
         image = Image.fromarray(plot)
 
         byte_io = BytesIO()
@@ -141,7 +329,8 @@ def sensor(site, sensor, date):
     # encodes site, sensor, date into attachment filename
     attachment_filename = get_attachment_name(site, sensor, date, product)
 
-    return send_file(safe_join(datepath, 'ff.jpeg'), mimetype='image/jpeg')
+    return send_file(paths[0], mimetype='image/jpeg')
+
 
 
 @app.route('/api/v1/sites/<site>/sensors/<sensor>/<date>' +
@@ -152,6 +341,7 @@ def extract_plot(site, sensor, date, range_, column):
 
     datepath = check_sensor(site, sensor, date)
     path = os.path.join(datepath, product)
+
     if not os.path.exists(path):
         raise InvalidUsage('sensor data not available for given date',
                            payload={'site': site, 'sensor': sensor,
@@ -159,7 +349,7 @@ def extract_plot(site, sensor, date, range_, column):
 
     sitename = get_sitename(site, date, range_, column)
     boundary = get_sitename_boundary(sitename)
-    plot = clip_raster(path, boundary)
+    plot, gt = clip_raster(path, boundary)
     
     #plot = np.reshape(plot, (plot.shape[0]*plot.shape[1],plot.shape[2]))
     plot = np.dstack(plot)
@@ -171,15 +361,4 @@ def extract_plot(site, sensor, date, range_, column):
     attachment_filename = plot_attachment_name(sitename, sensor, date, product)
     return send_file(byte_io, as_attachment=True,
                      attachment_filename=attachment_filename)
-
-
-@app.route('/api/v1/sites/<site>/sensors')
-def list_sensors(site):
-    ''' List all the sensors in the given site '''
-    check_site(site)
-    return '{}: stereoTop'.format(site)
-
-
-@app.route('/api/')
-def api_active():
-    return 'API ACTIVE'
+'''

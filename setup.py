@@ -6,8 +6,17 @@ setup(
     include_package_data=True,
     install_requires=[
         'flask',
+        'numpy',
         'wtforms',
         'requests',
         'Pillow',
+        'terrautils',
+	'pyclowder',
+        'geojson',
+        'shapely',
+    ],
+    dependency_links=[
+        'git+https://github.com/terraref/terrautils@master#egg=terrautils-1.0.0',
+        'https://opensource.ncsa.illinois.edu/bitbucket/projects/CATS/repos/pyclowder2'
     ],
 )
