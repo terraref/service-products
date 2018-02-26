@@ -62,7 +62,31 @@ it back to GET.
 The request can be further refined with the use of the since and until
 parameters to limit the time range of the query.
 
+```
 > curl --data-urlencode "sensor_name=Thermal IR GeoTIFFs Datasets" --data-urlencode "sitename=MAC Field Scanner Season 1 Field Plot 111 W" --data "since=2016-05-09" --data "until=2016-05-31" -G https://sensorquery.workbench.terraref.org/api/v2/files
+
+[
+  {
+    "contentType": "image/png",
+    "date-created": "Fri Nov 03 11:44:56 CDT 2017",
+    "filename": "ir_geotiff_L1_ua-mac_2016-05-09__12-06-40-529.png",
+    "filepath": "/home/clowder/sites/ua-mac/Level_1/ir_geotiff/2016-05-09/2016-05-09__12-06-40-529/ir_geotiff_L1_ua-mac_2016-05-09__12-06-40-529.png",
+    "id": "59fc9d084f0c3383c73d041d",
+    "size": "370942"
+  },
+  {
+    "contentType": "image/tiff",
+    "date-created": "Fri Nov 03 11:44:57 CDT 2017",
+    "filename": "ir_geotiff_L1_ua-mac_2016-05-09__12-06-40-529.tif",
+    "filepath": "/home/clowder/sites/ua-mac/Level_1/ir_geotiff/2016-05-09/2016-05-09__12-06-40-529/ir_geotiff_L1_ua-mac_2016-05-09__12-06-40-529.tif",
+    "id": "59fc9d094f0c3383c73d0437",
+    "size": "1231298"
+  },
+
+...
+]
+```
+
 
 Generally speaking the sensor names should be well known to the user
 from the document. But a list of all sensors can be retrieved from the
