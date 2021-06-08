@@ -1,7 +1,7 @@
 Flask==0.12.2
 Jinja2==2.9.6
 MarkupSafe==1.0
-Pillow==4.2.1
+Pillow==8.2.0
 Werkzeug==0.12.2
 argparse==1.2.1
 betterpath==0.2.2
